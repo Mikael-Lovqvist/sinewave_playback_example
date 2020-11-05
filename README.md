@@ -1,4 +1,4 @@
-<img src="/docs/sinewave.svg" style="width: 300px">
+<img src="/docs/sinewave.svg" style="width: 500px">
 
 Simple Python example of sine wave generation and real time audio playback using pacat for PulseAudio.
 
