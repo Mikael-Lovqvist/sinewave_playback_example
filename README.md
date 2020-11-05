@@ -7,3 +7,6 @@ https://youtu.be/9wh7xYMXKJ8
 #### PulseAudio and pacat
 https://en.wikipedia.org/wiki/PulseAudio
 https://linux.die.net/man/1/pacat
+
+#### Credits
+Based on code by https://github.com/devilholk
