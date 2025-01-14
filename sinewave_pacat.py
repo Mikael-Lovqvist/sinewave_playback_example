@@ -2,26 +2,28 @@ import subprocess
 import numpy as np
 import math
 
-f = 3 # frequency in hz (incorrect, need to modify code for accurate timing.)
+f = 440 # Hz
 a = 0.1 # amplitude
-p = 0 # phase
-t = 0 # time step
+p = 0 # phase offse (0 .. 2π)
 
-buffersize = 1024 * 4 # size of sound buffer
-current_time = math.pi*2 / buffersize
+buffersize = 256 # samples
+latency = 100 # ms
+rate = 48000 # Hz
 
-latency = buffersize * 8 # latency in number of bytes
-pacatbuffer = bytearray()
+timestep = f * math.tau / rate # you can recaulcate this in the generator loop if you want to modulate the frequency
+
+sound_buffer = np.array([0.0] * buffersize, np.float32) # this sound buffer can be reused over and over
 
 # output sound using Pulseaudio using Pacat and stdin
-output_sound = subprocess.Popen(('pacat', '--latency', str(latency),  '--format', 'float32ne', '--channels', '1'), stdin=subprocess.PIPE)
+output_sound = subprocess.Popen(('pacat', f'--latency-msec={latency}', '--format=float32ne', '--channels=1', f'--rate={rate}'), stdin=subprocess.PIPE)
 
+
+accumulator = p	#starting phase
 while True:
+	#Update buffer
 	for i in range(buffersize):
-		t = t+current_time
-		sinewave = math.sin((math.pi*2)*(f*t)+p)*a
-		sample = np.float32(sinewave) # Python float to Numpy float32
-		sample.tobytes() # convert sound sample to bytes
-		pacatbuffer += bytearray(sample) # add bytes to buffer
-	output_sound.stdin.write(pacatbuffer) #write buffer to stdin
-	pacatbuffer = bytearray() # empty buffer
+		sound_buffer[i] = np.sin(accumulator) * a
+		accumulator = (accumulator + timestep) % math.tau
+
+	#Play buffer (blocking)
+	output_sound.stdin.write(sound_buffer.tobytes()) #write buffer to stdin
